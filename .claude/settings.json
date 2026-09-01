@@ -1,0 +1,8 @@
+{
+    "env": {
+        "ANTHROPIC_BASE_URL": "http://localhost:20128/v1",
+        "ANTHROPIC_AUTH_TOKEN": "sk-1f474d0cd0dce5f9-f3feef-b283a5f7",
+        "ANTHROPIC_MODEL": "sairam-ai"
+
+    }
+}
