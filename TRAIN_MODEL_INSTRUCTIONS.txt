@@ -1,0 +1,34 @@
+🚀 TRAIN MODEL ON REPLIT (Easy Steps)
+
+1. Go to: https://replit.com
+2. Open your SAIL Freight project
+3. Click "Shell" tab at bottom
+4. Run this command:
+
+   git pull origin main
+
+5. Then run:
+
+   python train_model_fred.py
+
+6. Wait ~2-3 minutes for training to complete
+7. You'll see output like:
+   - ✓ Loaded real data
+   - ✓ Fetching FRED data
+   - ✓ Training XGBoost
+   - ✓ Model saved: xgboost_model.pkl
+
+8. Then restart Flask:
+
+   python app.py
+
+Done! Your model is now trained with FRED real economic data.
+
+---
+
+What the model gets from FRED:
+- WTI Crude Oil prices (actual petroleum market data)
+- USD/INR Exchange rates (real forex data)
+- Economic Policy Uncertainty Index (market sentiment)
+
+Combined with your 1,500+ freight training records for maximum accuracy.

@@ -41,7 +41,6 @@ def calendar():
         with open('SMART_BOOKING_CALENDAR.html', 'r', encoding='utf-8') as f:
             return f.read()
     except FileNotFoundError:
-        # Fallback to home
         return home()
 
 @app.route('/api/predict', methods=['POST'])
@@ -55,6 +54,10 @@ def api_predict():
         coal_price = float(data.get('coal_price', 115.00))
         oil_price = float(data.get('oil_price', 78.00))
 
+        is_monsoon = 1 if month in [6, 7, 8, 9] else 0
+        oil_impact = (oil_price - 78.0) * 0.035
+        coal_impact = (coal_price - 115.0) * 0.02
+
         # Use trained XGBoost model if loaded
         if model_data and 'model' in model_data:
             model = model_data['model']
@@ -64,12 +67,12 @@ def api_predict():
                 'Coal_Price_USD_per_ton': coal_price,
                 'Oil_Price_USD_per_barrel': oil_price,
                 'USD_INR_Exchange_Rate': 83.4,
-                'Rainfall_mm': 95.0 if month in [6, 7, 8, 9] else 10.0,
+                'Rainfall_mm': 95.0 if is_monsoon else 10.0,
                 'Temperature_C': 32.0,
                 'Month': month,
                 'Quarter': (month - 1) // 3 + 1,
                 'DayOfYear': month * 30,
-                'Is_Monsoon': 1 if month in [6, 7, 8, 9] else 0,
+                'Is_Monsoon': is_monsoon,
                 'Rate_Lag1': current_rate,
                 'Rate_Lag7': current_rate * 0.98,
                 'Rate_MA7': current_rate * 1.01,
@@ -81,21 +84,41 @@ def api_predict():
             X = [[features.get(col, 0) for col in feature_cols]]
             pred_rate = float(model.predict(X)[0])
         else:
-            # Fallback algorithmic pricing model
-            is_monsoon = month in [6, 7, 8, 9]
-            oil_impact = (oil_price - 80.0) * 0.04
-            coal_impact = (coal_price - 110.0) * 0.02
-            base_mult = 1.15 if is_monsoon else (0.92 if month in [1, 2, 12] else 0.98)
-            pred_rate = (current_rate * base_mult) + oil_impact + coal_impact
+            # Algorithmic pricing model dynamically responsive to inputs
+            seasonal_factor = 1.15 if is_monsoon else (0.91 if month in [1, 2, 12] else 0.97)
+            pred_rate = (current_rate * seasonal_factor) + oil_impact + coal_impact
 
-        # Ensure prediction is bounded in realistic maritime bulk freight range
-        pred_rate = max(7.5, min(16.5, float(pred_rate)))
+        pred_rate = max(7.0, min(18.0, float(pred_rate)))
 
-        recommendation = 'WAIT' if pred_rate < current_rate else 'CHARTER NOW'
+        # Multi-week dynamic forecast trajectory based on actual inputs
+        w1 = current_rate
+        if is_monsoon:
+            w2 = round(current_rate * 1.04 + oil_impact * 0.5, 2)
+            w3 = round(pred_rate, 2)
+            w4 = round(pred_rate * 0.97 + coal_impact * 0.5, 2)
+        elif month in [1, 2, 12]:
+            w2 = round(current_rate * 0.98 + oil_impact * 0.5, 2)
+            w3 = round(pred_rate, 2)
+            w4 = round(pred_rate * 0.95, 2)
+        else:
+            w2 = round(current_rate * 1.01 + oil_impact * 0.5, 2)
+            w3 = round(pred_rate, 2)
+            w4 = round(current_rate * 0.97 + coal_impact * 0.5, 2)
+
+        forecast = [round(float(w1), 2), round(float(w2), 2), round(float(w3), 2), round(float(w4), 2)]
+        best_rate = min(forecast)
+        worst_rate = max(forecast)
+        best_week = forecast.indexOf(best_rate) + 1 if hasattr(forecast, 'indexOf') else (forecast.index(best_rate) + 1)
+
+        recommendation = 'WAIT' if (pred_rate < current_rate or best_rate < current_rate) else 'CHARTER NOW'
 
         return jsonify({
             'current_rate': current_rate,
             'predicted_rate': round(pred_rate, 2),
+            'forecast': forecast,
+            'best_rate': round(best_rate, 2),
+            'worst_rate': round(worst_rate, 2),
+            'best_week': best_week,
             'recommendation': recommendation,
             'confidence': '86.1%'
         })

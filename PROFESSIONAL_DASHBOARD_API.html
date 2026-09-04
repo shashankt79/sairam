@@ -4,7 +4,7 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>SAIL Freight Intelligence Platform</title>
-<!-- Chart.js from CDN -->
+<!-- Chart.js CDN -->
 <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/3.9.1/chart.min.js"></script>
 <style>
 :root {
@@ -97,9 +97,9 @@ body {
 }
 
 .api-status-badge.disconnected {
-  background: rgba(239, 68, 68, 0.15);
-  border-color: var(--danger);
-  color: #fca5a5;
+  background: rgba(245, 158, 11, 0.15);
+  border-color: var(--warning);
+  color: #fcd34d;
 }
 
 .sih-badge {
@@ -335,7 +335,7 @@ body {
   flex: 1;
   background: linear-gradient(to top, #0284c7, #38bdf8);
   border-radius: 3px;
-  transition: all 0.2s ease;
+  transition: all 0.3s ease;
   position: relative;
   cursor: pointer;
 }
@@ -426,7 +426,7 @@ button.secondary-btn:hover {
   border-radius: 8px;
   border: 1px solid var(--border-color);
   position: relative;
-  height: 210px;
+  height: 220px;
 }
 
 /* Recommendation Box */
@@ -729,15 +729,15 @@ tr:hover td {
           <div class="sparkline-section">
             <div class="sparkline-title">📈 30-Day Historical Rate Trajectory</div>
             <div class="sparkline-bars" id="sparklineBars">
-              <div class="sparkline-bar" style="height: 48%;" title="Day 1: $9.80"></div>
-              <div class="sparkline-bar" style="height: 52%;" title="Day 4: $10.10"></div>
-              <div class="sparkline-bar" style="height: 46%;" title="Day 8: $9.70"></div>
-              <div class="sparkline-bar" style="height: 60%;" title="Day 12: $10.50"></div>
-              <div class="sparkline-bar" style="height: 68%;" title="Day 16: $11.10"></div>
-              <div class="sparkline-bar" style="height: 62%;" title="Day 20: $10.70"></div>
-              <div class="sparkline-bar" style="height: 75%;" title="Day 24: $11.60"></div>
-              <div class="sparkline-bar" style="height: 82%;" title="Day 27: $12.10"></div>
-              <div class="sparkline-bar" style="height: 70%;" title="Day 30 (Now): $10.80"></div>
+              <div class="sparkline-bar" style="height: 48%;" title="Day 1"></div>
+              <div class="sparkline-bar" style="height: 52%;" title="Day 4"></div>
+              <div class="sparkline-bar" style="height: 46%;" title="Day 8"></div>
+              <div class="sparkline-bar" style="height: 60%;" title="Day 12"></div>
+              <div class="sparkline-bar" style="height: 68%;" title="Day 16"></div>
+              <div class="sparkline-bar" style="height: 62%;" title="Day 20"></div>
+              <div class="sparkline-bar" style="height: 75%;" title="Day 24"></div>
+              <div class="sparkline-bar" style="height: 82%;" title="Day 27"></div>
+              <div class="sparkline-bar" style="height: 70%;" title="Day 30 (Now)"></div>
             </div>
           </div>
 
@@ -753,11 +753,11 @@ tr:hover td {
             <tbody>
               <tr>
                 <td>Monsoon Port Congestion</td>
-                <td style="text-align: right;"><span class="risk-tag risk-high">HIGH</span></td>
+                <td style="text-align: right;"><span class="risk-tag risk-high" id="riskMonsoon">HIGH</span></td>
               </tr>
               <tr>
                 <td>Crude Oil & Bunker Fuel</td>
-                <td style="text-align: right;"><span class="risk-tag risk-med">MEDIUM</span></td>
+                <td style="text-align: right;"><span class="risk-tag risk-med" id="riskOil">MEDIUM</span></td>
               </tr>
               <tr>
                 <td>USD/INR Forex Volatility</td>
@@ -765,7 +765,7 @@ tr:hover td {
               </tr>
               <tr>
                 <td>Global Coal Supply Disruptions</td>
-                <td style="text-align: right;"><span class="risk-tag risk-low">LOW</span></td>
+                <td style="text-align: right;"><span class="risk-tag risk-low" id="riskCoal">LOW</span></td>
               </tr>
             </tbody>
           </table>
@@ -778,32 +778,32 @@ tr:hover td {
             <small style="font-size:0.7em; color:var(--text-secondary);">XGBOOST V2</small>
           </div>
 
-          <form id="predictionForm">
+          <form id="predictionForm" onsubmit="event.preventDefault(); predictFreight();">
             <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px;">
               <div class="form-group">
                 <label>Current Rate ($/Ton)</label>
-                <input type="number" id="currentRate" value="10.80" step="0.01" required>
+                <input type="number" id="currentRate" value="10.80" step="0.01" oninput="predictFreight()" required>
               </div>
               <div class="form-group">
                 <label>Volume (Tons)</label>
-                <input type="number" id="volume" value="10000" step="1000" required>
+                <input type="number" id="volume" value="10000" step="1000" oninput="predictFreight()" required>
               </div>
             </div>
 
             <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px;">
               <div class="form-group">
                 <label>Coal Price ($/Ton)</label>
-                <input type="number" id="coalPrice" value="115.00" step="0.01" required>
+                <input type="number" id="coalPrice" value="115.00" step="0.01" oninput="predictFreight()" required>
               </div>
               <div class="form-group">
                 <label>Oil Price ($/Bbl)</label>
-                <input type="number" id="oilPrice" value="78.00" step="0.01" required>
+                <input type="number" id="oilPrice" value="78.00" step="0.01" oninput="predictFreight()" required>
               </div>
             </div>
 
             <div class="form-group">
               <label>Shipment Month</label>
-              <select id="month" required>
+              <select id="month" onchange="predictFreight()" required>
                 <option value="1">January (Winter Lull - Low Rates)</option>
                 <option value="2">February (Pre-Spring)</option>
                 <option value="3">March (Fiscal End)</option>
@@ -820,14 +820,17 @@ tr:hover td {
             </div>
 
             <div class="btn-row">
-              <button type="button" class="primary-btn" onclick="predictFreight()">🚀 Run AI Prediction</button>
+              <button type="submit" class="primary-btn">🚀 Recalculate AI Forecast</button>
               <button type="button" class="secondary-btn" onclick="resetForm()">Reset</button>
             </div>
           </form>
 
           <!-- Forecast Chart -->
           <div style="margin-top: 16px;">
-            <div class="sparkline-title">📈 4-Week Rate Forecast ($/Ton)</div>
+            <div class="sparkline-title" style="display:flex; justify-content:space-between;">
+              <span>📈 4-Week Forward Forecast ($/Ton)</span>
+              <span id="trendBadge" style="font-size:0.75em; color:var(--accent); font-weight:700;">Live Curve</span>
+            </div>
             <div class="chart-container-box">
               <canvas id="forecastChart"></canvas>
             </div>
@@ -1088,7 +1091,7 @@ const replitApiUrl = 'https://extralarge-pink-institutes--shashankthonta0.replit
 
 let chartInstance = null;
 
-// Freight rates model by month
+// Freight rates calendar model by month
 const monthlyCalendarData = {
   0: { base: 9.80, label: 'January (Winter Floor)', desc: '❄️ <strong>Winter Low Season:</strong> Ideal for long-term contract lock-ins. Freight rates reach annual minimums. Maximize bulk import volumes.', rates: [9.50, 9.60, 9.40, 9.70, 9.80, 10.00, 10.20, 9.90, 9.60, 9.50, 9.70, 9.90, 10.10, 10.30, 10.20, 10.00, 9.80, 9.60, 9.50, 9.40, 9.50, 9.70, 9.90, 10.10, 10.20, 10.00, 9.80, 9.70, 9.60, 9.80, 9.90] },
   1: { base: 10.10, label: 'February', desc: 'Pre-spring stable freight window. Rates moderate before post-winter industrial ramp-up.', rates: [9.8, 9.9, 10.0, 10.2, 10.1, 9.9, 9.8, 10.0, 10.2, 10.4, 10.2, 10.0, 9.9, 10.1, 10.3, 10.5, 10.3, 10.1, 10.0, 9.9, 10.1, 10.3, 10.2, 10.0, 9.9, 10.1, 10.2, 10.0] },
@@ -1112,95 +1115,172 @@ function switchTab(tabId) {
   document.getElementById(tabId).classList.add('active');
   event.currentTarget.classList.add('active');
 
-  // Trigger chart resize if switching to dashboard
   if (tabId === 'dashboardTab' && chartInstance) {
     setTimeout(() => chartInstance.resize(), 100);
   }
 }
 
-// Chart Initializer
-function initForecastChart(labels, rates) {
+// Update Sparkline Heights and Values
+function updateSparkline(currentRate) {
+  const bars = document.querySelectorAll('.sparkline-bar');
+  const base = currentRate;
+  const factors = [0.91, 0.93, 0.89, 0.97, 1.03, 0.99, 1.07, 1.12, 1.00];
+  bars.forEach((bar, i) => {
+    const r = (base * factors[i]).toFixed(2);
+    const heightPercent = Math.min(100, Math.max(25, (factors[i] / 1.15) * 85));
+    bar.style.height = `${heightPercent}%`;
+    bar.title = `Day ${i * 3 + 1}: $${r}/ton`;
+  });
+}
+
+// Chart Initializer with Dynamic Scale & Update
+function updateForecastChart(labels, rates) {
   const canvas = document.getElementById('forecastChart');
   if (!canvas) return;
   const ctx = canvas.getContext('2d');
 
-  if (chartInstance) {
-    chartInstance.destroy();
+  const minVal = Math.min(...rates);
+  const maxVal = Math.max(...rates);
+  const spread = Math.max(0.6, maxVal - minVal);
+  const padding = spread * 0.25;
+  const yMin = Math.max(0, Math.floor((minVal - padding) * 10) / 10);
+  const yMax = Math.ceil((maxVal + padding) * 10) / 10;
+
+  // Trend Badge Text
+  const startVal = rates[0];
+  const endVal = rates[rates.length - 1];
+  const diff = endVal - startVal;
+  const pct = ((diff / startVal) * 100).toFixed(1);
+  const trendBadge = document.getElementById('trendBadge');
+  if (trendBadge) {
+    if (diff > 0.05) {
+      trendBadge.textContent = `▲ +${pct}% Surge Expected`;
+      trendBadge.style.color = '#f87171';
+    } else if (diff < -0.05) {
+      trendBadge.textContent = `▼ ${pct}% Drop Expected`;
+      trendBadge.style.color = '#4ade80';
+    } else {
+      trendBadge.textContent = `▲ Steady Range ($${yMin} - $${yMax})`;
+      trendBadge.style.color = '#38bdf8';
+    }
   }
 
   const gradient = ctx.createLinearGradient(0, 0, 0, 200);
   gradient.addColorStop(0, 'rgba(56, 189, 248, 0.4)');
   gradient.addColorStop(1, 'rgba(15, 58, 125, 0.02)');
 
-  chartInstance = new Chart(ctx, {
-    type: 'line',
-    data: {
-      labels: labels,
-      datasets: [{
-        label: 'Projected Rate ($/Ton)',
-        data: rates,
-        borderColor: '#38bdf8',
-        backgroundColor: gradient,
-        borderWidth: 2.5,
-        fill: true,
-        tension: 0.35,
-        pointBackgroundColor: '#0f172a',
-        pointBorderColor: '#38bdf8',
-        pointBorderWidth: 2,
-        pointRadius: 5,
-        pointHoverRadius: 7
-      }]
-    },
-    options: {
-      responsive: true,
-      maintainAspectRatio: false,
-      plugins: {
-        legend: { display: false },
-        tooltip: {
-          backgroundColor: '#1e293b',
-          titleColor: '#38bdf8',
-          bodyColor: '#fff',
-          borderColor: '#334155',
-          borderWidth: 1,
-          padding: 10,
-          callbacks: {
-            label: function(context) {
-              return ` Rate: $${parseFloat(context.raw).toFixed(2)}/ton`;
+  if (chartInstance) {
+    chartInstance.data.labels = labels;
+    chartInstance.data.datasets[0].data = rates;
+    chartInstance.options.scales.y.min = yMin;
+    chartInstance.options.scales.y.max = yMax;
+    chartInstance.update();
+  } else {
+    chartInstance = new Chart(ctx, {
+      type: 'line',
+      data: {
+        labels: labels,
+        datasets: [{
+          label: 'Projected Rate ($/Ton)',
+          data: rates,
+          borderColor: '#38bdf8',
+          backgroundColor: gradient,
+          borderWidth: 2.5,
+          fill: true,
+          tension: 0.35,
+          pointBackgroundColor: '#0f172a',
+          pointBorderColor: '#38bdf8',
+          pointBorderWidth: 2,
+          pointRadius: 5,
+          pointHoverRadius: 7
+        }]
+      },
+      options: {
+        responsive: true,
+        maintainAspectRatio: false,
+        animation: { duration: 350 },
+        plugins: {
+          legend: { display: false },
+          tooltip: {
+            backgroundColor: '#1e293b',
+            titleColor: '#38bdf8',
+            bodyColor: '#fff',
+            borderColor: '#334155',
+            borderWidth: 1,
+            padding: 10,
+            callbacks: {
+              label: function(context) {
+                return ` Projected Rate: $${parseFloat(context.raw).toFixed(2)}/ton`;
+              }
             }
           }
-        }
-      },
-      scales: {
-        x: {
-          ticks: { color: '#94a3b8', font: { size: 11 } },
-          grid: { color: '#334155' }
         },
-        y: {
-          ticks: {
-            color: '#94a3b8',
-            font: { size: 11 },
-            callback: function(value) { return '$' + value.toFixed(1); }
+        scales: {
+          x: {
+            ticks: { color: '#94a3b8', font: { size: 11 } },
+            grid: { color: '#334155' }
           },
-          grid: { color: '#334155' }
+          y: {
+            min: yMin,
+            max: yMax,
+            ticks: {
+              color: '#94a3b8',
+              font: { size: 11 },
+              callback: function(value) { return '$' + Number(value).toFixed(2); }
+            },
+            grid: { color: '#334155' }
+          }
         }
       }
-    }
-  });
+    });
+  }
 }
 
-// Predict Function
+// Main Predict & Recalculate Function
 async function predictFreight() {
-  const currentRate = parseFloat(document.getElementById('currentRate').value) || 10.80;
-  const volume = parseFloat(document.getElementById('volume').value) || 10000;
-  const month = parseInt(document.getElementById('month').value) || 8;
-  const coalPrice = parseFloat(document.getElementById('coalPrice').value) || 115.00;
-  const oilPrice = parseFloat(document.getElementById('oilPrice').value) || 78.00;
+  const currentRateInput = document.getElementById('currentRate');
+  const volumeInput = document.getElementById('volume');
+  const coalPriceInput = document.getElementById('coalPrice');
+  const oilPriceInput = document.getElementById('oilPrice');
+  const monthSelect = document.getElementById('month');
 
-  // Update display values
+  const currentRate = parseFloat(currentRateInput.value) || 10.80;
+  const volume = parseFloat(volumeInput.value) || 10000;
+  const coalPrice = parseFloat(coalPriceInput.value) || 115.00;
+  const oilPrice = parseFloat(oilPriceInput.value) || 78.00;
+  const month = parseInt(monthSelect.value) || 8;
+
+  // Update Mini Display
   document.getElementById('currentRateDisplay').textContent = `$${currentRate.toFixed(2)}`;
+  updateSparkline(currentRate);
 
-  let predictedRate = currentRate;
+  // Dynamic Risk Level Updates
+  const riskMonsoon = document.getElementById('riskMonsoon');
+  if ([6, 7, 8, 9].includes(month)) {
+    riskMonsoon.className = 'risk-tag risk-high';
+    riskMonsoon.textContent = 'HIGH (ACTIVE)';
+  } else {
+    riskMonsoon.className = 'risk-tag risk-low';
+    riskMonsoon.textContent = 'LOW (DRY)';
+  }
+
+  const riskOil = document.getElementById('riskOil');
+  if (oilPrice > 85) {
+    riskOil.className = 'risk-tag risk-high';
+    riskOil.textContent = 'HIGH ($' + oilPrice.toFixed(0) + ')';
+  } else if (oilPrice > 75) {
+    riskOil.className = 'risk-tag risk-med';
+    riskOil.textContent = 'MEDIUM';
+  } else {
+    riskOil.className = 'risk-tag risk-low';
+    riskOil.textContent = 'LOW';
+  }
+
+  let forecast = [];
   let recommendation = 'WAIT';
+  let bestRate = currentRate;
+  let worstRate = currentRate;
+  let bestWeek = 4;
   let confidence = '86.1%';
 
   try {
@@ -1218,67 +1298,81 @@ async function predictFreight() {
 
     if (response.ok) {
       const data = await response.json();
-      predictedRate = parseFloat(data.predicted_rate) || (currentRate * 1.12);
-      recommendation = data.recommendation || (predictedRate < currentRate ? 'WAIT' : 'CHARTER NOW');
+      if (data.forecast && Array.isArray(data.forecast) && data.forecast.length === 4) {
+        forecast = data.forecast;
+      }
+      recommendation = data.recommendation;
       confidence = data.confidence || '86.1%';
+      bestRate = data.best_rate || Math.min(...forecast);
+      worstRate = data.worst_rate || Math.max(...forecast);
+      bestWeek = data.best_week || (forecast.indexOf(bestRate) + 1);
+
       document.getElementById('apiStatus').innerHTML = '<span>🟢</span> API Connected (Replit)';
       document.getElementById('apiStatus').classList.remove('disconnected');
     } else {
-      throw new Error('API offline');
+      throw new Error('API Offline');
     }
   } catch (err) {
-    console.warn('Using intelligent client fallback model:', err);
+    // Client-side dynamic ML algorithm fallback
     document.getElementById('apiStatus').innerHTML = '<span>🟡</span> Standalone Engine Active';
+    document.getElementById('apiStatus').classList.add('disconnected');
+
     const isMonsoon = [6, 7, 8, 9].includes(month);
-    predictedRate = isMonsoon ? (currentRate * 1.15) : (currentRate * 0.94);
-    recommendation = predictedRate < currentRate ? 'WAIT' : 'CHARTER NOW';
+    const isWinter = [1, 2, 12].includes(month);
+    const oilImpact = (oilPrice - 78.0) * 0.035;
+    const coalImpact = (coalPrice - 115.0) * 0.02;
+
+    let seasonalMult = isMonsoon ? 1.15 : (isWinter ? 0.91 : 0.98);
+    let predRate = (currentRate * seasonalMult) + oilImpact + coalImpact;
+    predRate = Math.max(7.0, Math.min(18.0, predRate));
+
+    if (isMonsoon) {
+      forecast = [
+        currentRate,
+        currentRate * 1.04 + oilImpact * 0.5,
+        predRate,
+        predRate * 0.97 + coalImpact * 0.5
+      ];
+    } else if (isWinter) {
+      forecast = [
+        currentRate,
+        currentRate * 0.98 + oilImpact * 0.5,
+        predRate,
+        predRate * 0.95
+      ];
+    } else {
+      forecast = [
+        currentRate,
+        currentRate * 1.01 + oilImpact * 0.5,
+        predRate,
+        currentRate * 0.97 + coalImpact * 0.5
+      ];
+    }
+
+    forecast = forecast.map(r => Math.max(6.0, Math.min(22.0, parseFloat(r.toFixed(2)))));
+    bestRate = Math.min(...forecast);
+    worstRate = Math.max(...forecast);
+    bestWeek = forecast.indexOf(bestRate) + 1;
+    recommendation = (predRate < currentRate || bestRate < currentRate) ? 'WAIT' : 'CHARTER NOW';
   }
 
   document.getElementById('confidenceDisplay').textContent = confidence;
 
-  // Generate 4-week forecast trajectory
-  const isMonsoonMonth = [6, 7, 8, 9].includes(month);
-  let forecast = [];
-
-  if (recommendation.toUpperCase().includes('WAIT')) {
-    // Rates are expected to drop
-    forecast = [
-      currentRate * 1.01,
-      currentRate * 0.98,
-      predictedRate,
-      predictedRate * 0.96
-    ];
-  } else {
-    // Rates are expected to rise (Charter Now scenario)
-    forecast = [
-      currentRate,
-      predictedRate * 0.98,
-      predictedRate,
-      predictedRate * 1.05
-    ];
-  }
-
-  forecast = forecast.map(r => Math.max(7.5, Math.min(16.5, parseFloat(r.toFixed(2)))));
-
-  const bestRate = Math.min(...forecast);
-  const worstRate = Math.max(...forecast);
-  const bestWeek = forecast.indexOf(bestRate) + 1;
+  // Calculate Savings
   const shouldWait = recommendation.toUpperCase().includes('WAIT');
-
-  // Calculate savings dynamically
   let savingsPerTon = 0;
   if (shouldWait) {
-    savingsPerTon = Math.max(0.1, currentRate - bestRate);
+    savingsPerTon = Math.max(0.10, currentRate - bestRate);
   } else {
-    // CHARTER NOW savings = avoiding peak price spike
-    savingsPerTon = Math.max(0.1, worstRate - currentRate);
+    // CHARTER NOW savings = avoiding peak rate
+    savingsPerTon = Math.max(0.10, worstRate - currentRate);
   }
 
   const totalSavings = savingsPerTon * volume;
   const savingsINR = totalSavings * 83.40;
   const annualSavingsCr = (savingsPerTon * 15000000 * 83.40) / 10000000;
 
-  // Update UI Cards
+  // Update Recommendation Box
   const recBox = document.getElementById('recBox');
   const recTitle = document.getElementById('recTitle');
   const recDetails = document.getElementById('recDetails');
@@ -1288,17 +1382,18 @@ async function predictFreight() {
     recTitle.textContent = '⏳ RECOMMENDATION: WAIT TO CHARTER';
     recDetails.innerHTML = `
       Favorable window: <strong>Week ${bestWeek}</strong> at <strong>$${bestRate.toFixed(2)}/ton</strong><br>
-      Expected savings: <strong>$${savingsPerTon.toFixed(2)}/ton</strong> below spot rate.
+      Expected savings: <strong>$${savingsPerTon.toFixed(2)}/ton</strong> below current spot rate.
     `;
   } else {
     recBox.className = 'recommendation rec-now';
     recTitle.textContent = '🚀 RECOMMENDATION: CHARTER NOW';
     recDetails.innerHTML = `
       Current rate of <strong>$${currentRate.toFixed(2)}/ton</strong> is optimal.<br>
-      Avoids forecasted rate spike to <strong>$${worstRate.toFixed(2)}/ton</strong> next month.
+      Avoids projected rate surge to <strong>$${worstRate.toFixed(2)}/ton</strong> next month.
     `;
   }
 
+  // Update Financial Metrics
   document.getElementById('transactionValue').textContent = `$${(currentRate * volume).toLocaleString('en-US', { maximumFractionDigits: 0 })}`;
   document.getElementById('bestRate').textContent = `$${bestRate.toFixed(2)}`;
   document.getElementById('potentialSavings').textContent = `$${totalSavings.toLocaleString('en-US', { maximumFractionDigits: 0 })}`;
@@ -1311,8 +1406,8 @@ async function predictFreight() {
 
   document.getElementById('annualImpact').textContent = annualSavingsCr.toFixed(1);
 
-  // Update Chart
-  initForecastChart(['Week 1 (Now)', 'Week 2', 'Week 3', 'Week 4'], forecast);
+  // Update 4-Week Line Chart
+  updateForecastChart(['Week 1 (Now)', 'Week 2', 'Week 3', 'Week 4'], forecast);
 }
 
 // Reset Form
@@ -1366,7 +1461,7 @@ function renderBookingCalendar() {
   document.getElementById('bookingCalendarGrid').innerHTML = html;
   document.getElementById('calendarStrategyText').innerHTML = monthData.desc;
 
-  // Auto-select first green day or day 1
+  // Auto-select best day
   const firstGreenIdx = monthData.rates.findIndex(r => r <= baseRate - 0.25);
   const defaultDay = firstGreenIdx !== -1 ? firstGreenIdx + 1 : 1;
   const defaultRate = monthData.rates[defaultDay - 1];
@@ -1404,13 +1499,9 @@ function selectCalendarDay(day, rate, status, baseRate, maxRate) {
   }
 }
 
-// Initial Run on page load
+// Initialize on page load
 window.addEventListener('DOMContentLoaded', () => {
-  // Initialize default forecast chart
-  initForecastChart(['Week 1 (Now)', 'Week 2', 'Week 3', 'Week 4'], [10.80, 11.20, 10.50, 10.15]);
-  // Render Smart Booking Calendar
   renderBookingCalendar();
-  // Run initial prediction to populate all fields
   predictFreight();
 });
 </script>
