@@ -7,6 +7,7 @@ Open: http://localhost:5000
 """
 
 from flask import Flask, render_template_string, request, jsonify
+from flask_cors import CORS
 import pandas as pd
 import numpy as np
 import pickle
@@ -14,6 +15,7 @@ import os
 import json
 
 app = Flask(__name__)
+CORS(app)  # Enable CORS for all routes
 
 # Load model and data
 model_data = None
