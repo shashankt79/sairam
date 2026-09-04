@@ -899,23 +899,48 @@ async function predictFreight() {
     const data = await response.json();
     updateApiStatus(true);
 
-    // Get predicted rate from API
-    const predictedRate = parseFloat(data.predicted_rate);
+    // Get predicted rate from API - make sure it's a valid number
+    let predictedRate = parseFloat(data.predicted_rate);
+    if (isNaN(predictedRate)) {
+      predictedRate = currentRate * 1.1; // Fallback
+    }
+
+    console.log('Debug - currentRate:', currentRate, 'predictedRate:', predictedRate, 'recommendation:', data.recommendation);
 
     // Generate 4-week forecast based on predicted rate
     const forecast = [
       currentRate * 1.02,
-      predictedRate * 1.01,
-      predictedRate * 0.98,
-      predictedRate * 0.95
+      predictedRate,
+      predictedRate * 0.97,
+      predictedRate * 0.94
     ].map(r => Math.max(7, Math.min(15, r)));
 
     const bestRate = Math.min(...forecast);
+    const worstRate = Math.max(...forecast);
     const bestWeek = forecast.indexOf(bestRate) + 1;
-    const shouldWait = bestRate < currentRate;
-    const savingsPerTon = shouldWait ? (currentRate - bestRate) : 0;
+
+    // Determine if WAIT or CHARTER NOW based on API recommendation
+    const shouldWait = data.recommendation.toLowerCase().includes('wait');
+
+    // Calculate savings for both scenarios
+    let savingsPerTon = 0;
+    if (shouldWait) {
+      // WAIT scenario: save money by waiting for lower rate
+      savingsPerTon = Math.abs(currentRate - bestRate);
+    } else {
+      // CHARTER NOW scenario: save money by chartering now before rates rise
+      savingsPerTon = Math.abs(worstRate - currentRate);
+    }
+
+    // Make sure savings is never negative or NaN
+    if (isNaN(savingsPerTon) || savingsPerTon < 0) {
+      savingsPerTon = 0;
+    }
+
     const totalSavings = savingsPerTon * volume;
     const savingsINR = totalSavings * 83.4;
+
+    console.log('Debug - shouldWait:', shouldWait, 'savingsPerTon:', savingsPerTon, 'totalSavings:', totalSavings, 'savingsINR:', savingsINR);
     const annualImpact = (savingsINR / 100000) * (15000000 / volume); // Scale to SAIL's 15M tons
 
     // Show results
