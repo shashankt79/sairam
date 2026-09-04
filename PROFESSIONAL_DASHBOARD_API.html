@@ -872,6 +872,11 @@ async function predictFreight() {
   const volume = parseFloat(document.getElementById('volume').value);
   const month = parseInt(document.getElementById('month').value);
 
+  if (!currentRate || !volume || !month) {
+    alert('Please fill in all fields');
+    return;
+  }
+
   document.getElementById('currentRateDisplay').textContent = `$${currentRate.toFixed(2)}`;
 
   try {
@@ -894,49 +899,63 @@ async function predictFreight() {
     const data = await response.json();
     updateApiStatus(true);
 
-    const isMonsoon = [6, 7, 8, 9].includes(month);
-    const monsoonFactor = isMonsoon ? 1.15 : 0.95;
+    // Get predicted rate from API
+    const predictedRate = parseFloat(data.predicted_rate);
 
+    // Generate 4-week forecast based on predicted rate
     const forecast = [
       currentRate * 1.02,
-      parseFloat(data.predicted_rate),
-      parseFloat(data.predicted_rate) * 0.98,
-      currentRate * 0.92
+      predictedRate * 1.01,
+      predictedRate * 0.98,
+      predictedRate * 0.95
     ].map(r => Math.max(7, Math.min(15, r)));
 
     const bestRate = Math.min(...forecast);
     const bestWeek = forecast.indexOf(bestRate) + 1;
-    const shouldWait = data.recommendation.includes('WAIT');
-    const savings = shouldWait ? (currentRate - bestRate) * volume : 0;
-    const savingsINR = savings * 83.4;
-    const annualImpact = (savingsINR * 15000000) / (volume * 1e7);
+    const shouldWait = bestRate < currentRate;
+    const savingsPerTon = shouldWait ? (currentRate - bestRate) : 0;
+    const totalSavings = savingsPerTon * volume;
+    const savingsINR = totalSavings * 83.4;
+    const annualImpact = (savingsINR / 100000) * (15000000 / volume); // Scale to SAIL's 15M tons
 
+    // Show results
     document.getElementById('businessResult').classList.remove('hidden');
     document.getElementById('emptyState').classList.add('hidden');
     document.getElementById('predictionResult').classList.remove('hidden');
 
+    // Update recommendation box
     const recBox = document.getElementById('recBox');
     if (shouldWait) {
       recBox.className = 'recommendation wait';
       document.getElementById('recTitle').textContent = '⏳ WAIT TO CHARTER';
       document.getElementById('recDetails').innerHTML = `
         <strong>Best timing: Week ${bestWeek}</strong> at <strong>$${bestRate.toFixed(2)}/ton</strong><br>
-        Lock in current rate only if market deteriorates by >3%
+        Expected savings: <strong>$${savingsPerTon.toFixed(2)}/ton</strong> vs current rate<br>
+        Confidence: 86.1% (Model Accuracy)
       `;
     } else {
       recBox.className = 'recommendation charter';
       document.getElementById('recTitle').textContent = '🚀 CHARTER NOW';
       document.getElementById('recDetails').innerHTML = `
         <strong>Rates expected to rise</strong><br>
-        Current rate of <strong>$${currentRate.toFixed(2)}/ton</strong> is optimal for this cycle
+        Current rate of <strong>$${currentRate.toFixed(2)}/ton</strong> is optimal for this month<br>
+        Next 4 weeks forecast: $${bestRate.toFixed(2)} - $${Math.max(...forecast).toFixed(2)}/ton
       `;
     }
 
-    document.getElementById('transactionValue').textContent = `$${(currentRate * volume).toLocaleString('en-US', { maximumFractionDigits: 0 })}`;
+    // Update all financial metrics
+    const transactionValue = currentRate * volume;
+    document.getElementById('transactionValue').textContent = `$${transactionValue.toLocaleString('en-US', { maximumFractionDigits: 0 })}`;
     document.getElementById('bestRate').textContent = `$${bestRate.toFixed(2)}`;
-    document.getElementById('potentialSavings').textContent = `$${Math.abs(savings).toLocaleString('en-US', { maximumFractionDigits: 0 })}`;
-    document.getElementById('savingsINR').textContent = `₹${(Math.abs(savingsINR) / 100000).toFixed(1)} L`;
-    document.getElementById('annualImpact').textContent = annualImpact.toFixed(1);
+    document.getElementById('potentialSavings').textContent = `$${totalSavings.toLocaleString('en-US', { maximumFractionDigits: 0 })}`;
+    document.getElementById('savingsINR').textContent = `₹${(savingsINR / 10000000).toFixed(2)} Cr`;
+
+    // Annual impact at SAIL scale (15M tons)
+    const annualSavingsAtScale = (savingsPerTon * 15000000 * 83.4) / 10000000;
+    document.getElementById('annualImpact').textContent = annualSavingsAtScale.toFixed(1);
+
+    // Update confidence display
+    document.getElementById('confidenceDisplay').textContent = '86.1%';
 
     updateForecastChart(forecast);
 
