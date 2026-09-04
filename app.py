@@ -39,6 +39,16 @@ def home():
     except FileNotFoundError:
         return "Professional dashboard not found. Make sure PROFESSIONAL_DASHBOARD_API.html is in the project directory.", 404
 
+@app.route('/calendar')
+def calendar():
+    """Serve the Smart Booking Calendar"""
+    try:
+        with open('SMART_BOOKING_CALENDAR.html', 'r', encoding='utf-8') as f:
+            html_content = f.read()
+        return html_content
+    except FileNotFoundError:
+        return "Calendar not found. Make sure SMART_BOOKING_CALENDAR.html is in the project directory.", 404
+
 @app.route('/api/predict', methods=['POST'])
 def api_predict():
     """Return JSON prediction for external APIs"""
