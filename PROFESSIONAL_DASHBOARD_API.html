@@ -806,7 +806,8 @@ tr:hover {
 
 <script>
 let forecastChart = null;
-let replitApiUrl = localStorage.getItem('replitUrl') || '';
+// Hardcoded Replit API URL - auto-connects without popup
+let replitApiUrl = 'https://sairam-ai-freight.replit.dev';
 
 function openSettings() {
   document.getElementById('settingsModal').style.display = 'flex';
